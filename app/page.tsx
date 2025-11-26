@@ -4,11 +4,11 @@ import { Swords, Crown, Search, Zap } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="text-2xl font-bold text-white flex items-center gap-2">
-          <Crown className="h-8 w-8 text-yellow-400" />
-          Clash Strategy
+          <Crown className="h-8 w-8 text-blue-400" />
+          Clash Vision
         </div>
         <div className="flex gap-4">
           <Link href="/login">
@@ -27,7 +27,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
             Master Every Battle
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
               With AI Power
             </span>
           </h1>
@@ -69,7 +69,7 @@ export default function Home() {
             </div>
 
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <Crown className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <Crown className="h-12 w-12 text-blue-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Meta Insights</h3>
               <p className="text-gray-300">
                 Track top decks, balance changes, and win rate predictions.

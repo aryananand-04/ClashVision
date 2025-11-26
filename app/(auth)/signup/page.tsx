@@ -29,6 +29,7 @@ export default function SignupPage() {
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -39,6 +40,12 @@ export default function SignupPage() {
     }
 
     if (data.user) {
+      if (data.user.identities && data.user.identities.length === 0) {
+        setError('An account with this email already exists');
+        setLoading(false);
+        return;
+      }
+
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         email: data.user.email,
@@ -50,18 +57,23 @@ export default function SignupPage() {
         console.error('Profile creation error:', profileError);
       }
 
-      router.push('/dashboard');
-      router.refresh();
+      if (data.session) {
+        router.push('/dashboard');
+        router.refresh();
+      } else {
+        setError('Please check your email to confirm your account before logging in');
+        setLoading(false);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Start mastering Clash strategies
+            Start mastering Clash strategies with Clash Vision
           </CardDescription>
         </CardHeader>
         <CardContent>
