@@ -74,12 +74,14 @@ export async function getAllCards(): Promise<CardData[]> {
 async function getAllCardsFromRoyaleAPI(): Promise<CardData[]> {
   try {
     const response = await axios.get('https://api.royaleapi.com/cards');
+    console.log('RoyaleAPI cards:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching from RoyaleAPI:', error);
     return [];
   }
 }
+
 
 // Get player profile and current deck
 export async function getPlayerProfile(playerTag: string): Promise<PlayerStats | null> {
