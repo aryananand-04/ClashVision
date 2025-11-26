@@ -238,6 +238,10 @@ export default function DeckSelector() {
       console.log(`Fetching transcripts for ${allVideos.length} videos...`);
       const videoIds = allVideos.map(v => v.id);
       let transcriptsMap = new Map<string, string>();
+      let frameAnalysisMap = new Map<string, string[]>(); // Store cards detected via OCR/template matching
+      
+      // Get card names for analysis
+      const cardNamesForAnalysis = selectedCards.map(c => c.name.replace(' (Evolution)', ''));
       
       try {
         // Fetch transcripts in batches (to avoid rate limits)
@@ -270,6 +274,46 @@ export default function DeckSelector() {
       } catch (err) {
         console.error('Error fetching transcripts:', err);
         // Continue without transcripts - will use title/description only
+      }
+
+      // Step 2: Analyze first 30 seconds of videos with OCR + Template Matching
+      console.log(`Analyzing video frames (OCR + Template Matching) for top ${Math.min(20, allVideos.length)} videos...`);
+      try {
+        // Analyze top 20 videos (to avoid too many API calls)
+        const videosToAnalyze = allVideos.slice(0, 20);
+        
+        for (const video of videosToAnalyze) {
+          try {
+            const analysisResponse = await fetch('/api/youtube/analyze-video', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                videoId: video.id,
+                cardNames: cardNamesForAnalysis,
+              }),
+            });
+
+            if (analysisResponse.ok) {
+              const analysisData = await analysisResponse.json();
+              if (analysisData.cardsDetected && analysisData.cardsDetected.length > 0) {
+                frameAnalysisMap.set(video.id, analysisData.cardsDetected);
+                console.log(`Video ${video.id}: Detected ${analysisData.cardsDetected.length} cards via frame analysis`);
+              }
+            }
+          } catch (analysisErr) {
+            console.warn(`Frame analysis failed for video ${video.id}:`, analysisErr);
+            // Continue with next video
+          }
+          
+          // Small delay between video analyses
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        console.log(`Frame analysis complete: ${frameAnalysisMap.size} videos analyzed`);
+      } catch (err) {
+        console.error('Error in frame analysis:', err);
+        // Continue without frame analysis
       } finally {
         setFetchingTranscripts(false);
       }
@@ -317,10 +361,13 @@ export default function DeckSelector() {
           if (!isClashRoyale) return null;
           
           // COUNT how many of the 8 cards are mentioned (PRIMARY RANKING FACTOR)
-          // Now searches in: title, description, AND video transcript
+          // Now searches in: title, description, video transcript, AND frame analysis (OCR + template matching)
           let cardsMatched = 0;
           const matchedCards: string[] = [];
           const matchSources: { [key: string]: string[] } = {}; // Track where each card was found
+          
+          // Get frame analysis results for this video
+          const frameDetectedCards = frameAnalysisMap.get(video.id) || [];
           
           selectedCards.forEach(card => {
             const cardName = card.name.replace(' (Evolution)', '').toLowerCase();
@@ -336,9 +383,18 @@ export default function DeckSelector() {
               sources.push('description');
             }
             
-            // Check transcript (most important - searches INSIDE video)
+            // Check transcript (searches INSIDE video audio)
             if (transcript && cardNameMatches(transcriptLower, cardName)) {
               sources.push('transcript');
+            }
+            
+            // Check frame analysis (OCR + template matching - searches INSIDE video frames)
+            const cardFoundInFrames = frameDetectedCards.some(detectedCard =>
+              detectedCard.toLowerCase().includes(cardName) ||
+              cardName.includes(detectedCard.toLowerCase())
+            );
+            if (cardFoundInFrames) {
+              sources.push('frame_analysis');
             }
             
             // If found in any source, count it
@@ -376,10 +432,20 @@ export default function DeckSelector() {
               titleMatches++;
               score += 20; // Extra points for title mentions
             }
-            // BIG BONUS for transcript matches (searched inside video)
+            // BIG BONUS for transcript matches (searched inside video audio)
             if (transcript && cardNameMatches(transcriptLower, cardName)) {
               transcriptMatches++;
               score += 30; // Even more points for transcript matches
+            }
+            
+            // HUGE BONUS for frame analysis matches (OCR + template matching - visual detection)
+            const frameDetectedCards = frameAnalysisMap.get(video.id) || [];
+            const cardFoundInFrames = frameDetectedCards.some(detectedCard =>
+              detectedCard.toLowerCase().includes(cardName) ||
+              cardName.includes(detectedCard.toLowerCase())
+            );
+            if (cardFoundInFrames) {
+              score += 50; // Highest bonus for visual detection in frames
             }
           });
           
