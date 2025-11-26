@@ -110,7 +110,7 @@ export default function ProfilePage() {
               </div>
             </div>
             {profile?.is_premium && (
-              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+              <Badge className="bg-linear-to-r from-yellow-400 to-orange-500 text-white">
                 <Crown className="h-4 w-4 mr-1" />
                 Premium
               </Badge>
@@ -201,7 +201,7 @@ export default function ProfilePage() {
       </Card>
 
       {!profile?.is_premium && (
-        <Card className="bg-gradient-to-r from-blue-900 to-purple-900 border-0">
+        <Card className="bg-linear-to-r from-blue-900 to-purple-900 border-0">
           <CardContent className="p-6">
             <div className="text-center">
               <Crown className="h-12 w-12 mx-auto mb-4 text-yellow-400" />

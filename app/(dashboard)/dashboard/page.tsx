@@ -128,7 +128,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="bg-gradient-to-r from-blue-900 to-purple-900 border-0">
+      <Card className="bg-linear-to-r from-blue-900 to-purple-900 border-0">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
